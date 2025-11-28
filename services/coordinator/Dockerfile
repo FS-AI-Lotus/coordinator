@@ -18,9 +18,12 @@ COPY --from=builder /app/node_modules ./node_modules
 # Copy application code
 COPY . .
 
-# Add healthcheck
+# Copy healthcheck script
+COPY healthcheck.js ./
+
+# Add healthcheck (uses PORT env var)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD ["node", "healthcheck.js"]
 
 EXPOSE 3000
 
