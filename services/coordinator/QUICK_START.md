@@ -24,8 +24,10 @@ The service will start on `http://localhost:3000`
 In a **new terminal** (keep the server running):
 ```bash
 cd services/coordinator
-node test-register-fix.js
+node test/archive/test-register-fix.js
 ```
+
+**Note:** This test script is archived. For current tests, see `test/README.md`.
 
 ### Option B: Manual Testing with cURL
 

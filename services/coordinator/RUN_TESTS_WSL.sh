@@ -8,8 +8,8 @@ echo "======================================"
 echo ""
 
 # Check if we're in the right directory
-if [ ! -f "test-register-fix.js" ]; then
-    echo "❌ Error: test-register-fix.js not found"
+if [ ! -f "test/archive/test-register-fix.js" ]; then
+    echo "❌ Error: test/archive/test-register-fix.js not found"
     echo "Please run this script from: services/coordinator/"
     echo ""
     echo "Try:"
@@ -23,7 +23,7 @@ echo "Checking if service is running on http://localhost:3000..."
 if curl -s http://localhost:3000/health > /dev/null 2>&1; then
     echo "✅ Service is running"
     echo ""
-    node test-register-fix.js
+    node test/archive/test-register-fix.js
 else
     echo "❌ Service is not running!"
     echo ""
@@ -33,7 +33,7 @@ else
     echo ""
     echo "Then in another terminal, run:"
     echo "  cd services/coordinator"
-    echo "  node test-register-fix.js"
+    echo "  node test/archive/test-register-fix.js"
     exit 1
 fi
 
