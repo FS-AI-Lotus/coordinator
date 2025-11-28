@@ -37,6 +37,31 @@ class AIRoutingService {
     const startTime = Date.now();
     
     try {
+      // Normalize data - handle both string queries and structured objects
+      let normalizedData;
+      if (typeof data === 'string') {
+        // Simple string query from GET /route?q=...
+        normalizedData = {
+          type: 'http_query',
+          payload: {
+            query: data,
+            metadata: {},
+            context: {}
+          },
+          context: {
+            protocol: 'http',
+            source: 'rest',
+            method: routing.method || 'GET',
+            path: routing.path || '/route'
+          }
+        };
+      } else if (data && typeof data === 'object') {
+        // Structured data from POST /route
+        normalizedData = data;
+      } else {
+        throw new Error('Invalid routing data: must be string or object');
+      }
+      
       // Get all active services
       const services = await registryService.getAllServicesFull();
       const activeServices = services.filter(service => service.status === 'active');
@@ -50,7 +75,7 @@ class AIRoutingService {
       // Try AI routing first if enabled
       if (this.aiEnabled && this.openai) {
         try {
-          routingResult = await this._aiRoute(data, activeServices, routing);
+          routingResult = await this._aiRoute(normalizedData, activeServices, routing);
           logger.info('AI routing successful', {
             targetServices: routingResult.targetServices.map(s => s.serviceName),
             totalCandidates: routingResult.totalCandidates,
@@ -142,10 +167,15 @@ class AIRoutingService {
    * @private
    */
   _buildRoutingPrompt(data, services, routing) {
+    // Extract the user query from the data structure
+    const userQuery = data.payload?.query || data.query || JSON.stringify(data.payload || {});
+    
     logger.info('Building AI prompt', {
       servicesCount: services.length,
       dataType: typeof data,
-      query: data
+      userQuery: userQuery,
+      hasPayload: !!data.payload,
+      hasQuery: !!data.payload?.query
     });
     
     const serviceDescriptions = services.map(service => {
@@ -175,11 +205,13 @@ class AIRoutingService {
   Subscribes to Events: ${events.subscribes?.join(', ') || 'none'}`;
     }).join('\n');
 
-    return `You are a microservices router. Analyze the following request and determine which service(s) should handle it.
+    return `You are a microservices router. Analyze the following user request and determine which service(s) should handle it.
+
+USER REQUEST: "${userQuery}"
 
 Request Details:
-- Type: ${data.type}
-- Payload: ${JSON.stringify(data.payload, null, 2)}
+- Type: ${data.type || 'http_query'}
+- Payload: ${JSON.stringify(data.payload || {}, null, 2)}
 - Context: ${JSON.stringify(data.context || {}, null, 2)}
 
 Routing Strategy: ${routing.strategy || 'single'}
@@ -189,14 +221,15 @@ Available Services:
 ${serviceDescriptions}
 
 Instructions:
-1. Analyze the request type, payload, and context
-2. Match against service capabilities, endpoints, and events
+1. Analyze the USER REQUEST above - this is the key information to match
+2. Match the user request keywords and intent against service descriptions and database tables
 3. Return ALL relevant services ranked by confidence
-4. Include minimum 5 candidates (if available), maximum 10 candidates
+4. Include minimum 1 candidate (if available), maximum 10 candidates
 5. Only include services with confidence > 0.3
 6. Sort by confidence descending (highest first)
-7. Provide confidence scores (0-1) based on how well each service matches
-8. Include reasoning for your decisions
+7. Provide confidence scores (0-1) based on how well each service matches the USER REQUEST
+8. Include clear reasoning explaining why the service matches the user request
+9. Focus on matching: user request keywords → service description keywords → database tables
 
 Respond with JSON in this exact format:
 {
