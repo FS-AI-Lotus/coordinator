@@ -1,3 +1,10 @@
+/**
+ * @feature schema-registry
+ * @description Schema registry and validation service
+ * @dependencies service-registration
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 const registryService = require('./registryService');
 

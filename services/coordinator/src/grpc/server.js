@@ -1,3 +1,10 @@
+/**
+ * @feature dual-protocol
+ * @description gRPC server implementation
+ * @dependencies dual-protocol
+ * @owner core-team
+ */
+
 const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const path = require('path');

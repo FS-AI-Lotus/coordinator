@@ -1,3 +1,10 @@
+/**
+ * @feature communication-services
+ * @description Protocol abstraction layer for service communication
+ * @dependencies dual-protocol, monitoring, ai-routing, service-registration
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 const envelopeService = require('./envelopeService');
 const grpcClient = require('../grpc/client');

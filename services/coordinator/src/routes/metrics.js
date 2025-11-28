@@ -1,3 +1,11 @@
+/**
+ * @feature monitoring
+ * @description Prometheus metrics endpoint
+ * @dependencies monitoring
+ * @owner core-team
+ * @http GET /metrics
+ */
+
 const express = require('express');
 const router = express.Router();
 const metricsService = require('../services/metricsService');

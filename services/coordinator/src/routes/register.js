@@ -1,3 +1,14 @@
+/**
+ * @feature service-registration
+ * @description Service registration and management endpoints
+ * @dependencies database-integration, knowledge-graph, security-validation
+ * @owner core-team
+ * @http GET /register
+ * @http POST /register
+ * @http POST /register/:serviceId/migration
+ * @http DELETE /register/services
+ */
+
 const express = require('express');
 const router = express.Router();
 const registryService = require('../services/registryService');

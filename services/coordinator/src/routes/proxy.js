@@ -1,3 +1,11 @@
+/**
+ * @feature smart-proxy
+ * @description Smart proxy catch-all route for unmatched requests
+ * @dependencies ai-routing, service-registration
+ * @owner core-team
+ * @http * /*
+ */
+
 const express = require('express');
 const router = express.Router();
 const proxyService = require('../services/proxyService');

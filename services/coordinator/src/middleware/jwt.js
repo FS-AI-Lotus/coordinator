@@ -1,4 +1,11 @@
 /**
+ * @feature security-validation
+ * @description JWT authentication middleware (placeholder for Team 4)
+ * @dependencies none
+ * @owner core-team, Team 4
+ */
+
+/**
  * JWT Authentication Middleware (Placeholder)
  * 
  * This is a placeholder for JWT validation that Team 4 will implement.

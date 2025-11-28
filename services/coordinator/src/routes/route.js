@@ -1,3 +1,12 @@
+/**
+ * @feature ai-routing
+ * @description AI-powered routing endpoints
+ * @dependencies service-registration, security-validation
+ * @owner core-team
+ * @http POST /route
+ * @http GET /route
+ */
+
 const express = require('express');
 const router = express.Router();
 const aiRoutingService = require('../services/aiRoutingService');

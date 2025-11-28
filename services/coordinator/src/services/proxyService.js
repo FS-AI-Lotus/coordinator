@@ -1,3 +1,10 @@
+/**
+ * @feature smart-proxy
+ * @description Smart proxy service for request forwarding
+ * @dependencies ai-routing, service-registration
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 const aiRoutingService = require('./aiRoutingService');
 const registryService = require('./registryService');

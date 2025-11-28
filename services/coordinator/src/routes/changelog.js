@@ -1,3 +1,14 @@
+/**
+ * @feature changelog
+ * @description System changelog endpoints
+ * @dependencies none
+ * @owner core-team
+ * @http GET /changelog
+ * @http GET /changelog/stats
+ * @http GET /changelog/search
+ * @http POST /changelog/cleanup
+ */
+
 const express = require('express');
 const router = express.Router();
 const changelogService = require('../services/changelogService');

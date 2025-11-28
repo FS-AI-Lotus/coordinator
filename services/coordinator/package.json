@@ -5,7 +5,9 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "create:feature": "node scripts/create-feature.js",
+    "validate:features": "node scripts/validate-features.js"
   },
   "keywords": [
     "microservice",

@@ -1,3 +1,10 @@
+/**
+ * @feature monitoring
+ * @description Metrics collection and Prometheus export service
+ * @dependencies none
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 
 /**

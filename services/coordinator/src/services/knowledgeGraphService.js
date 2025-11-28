@@ -1,3 +1,10 @@
+/**
+ * @feature knowledge-graph
+ * @description Knowledge graph service for service relationships
+ * @dependencies service-registration, database-integration
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 const supabase = require('../config/supabase');
 const registryService = require('./registryService');

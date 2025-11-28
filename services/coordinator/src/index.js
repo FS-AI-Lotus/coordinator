@@ -1,3 +1,11 @@
+/**
+ * @feature dual-protocol
+ * @description Main application entry point - HTTP and gRPC server initialization
+ * @dependencies all features
+ * @owner core-team
+ * @http GET /
+ */
+
 require('dotenv').config();
 const express = require('express');
 const logger = require('./utils/logger');

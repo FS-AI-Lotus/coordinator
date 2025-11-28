@@ -1,3 +1,13 @@
+/**
+ * @feature service-registration
+ * @description Service discovery endpoints
+ * @dependencies service-registration
+ * @owner core-team
+ * @http GET /services
+ * @http GET /registry
+ * @http GET /services/:serviceId
+ */
+
 const express = require('express');
 const router = express.Router();
 const registryService = require('../services/registryService');

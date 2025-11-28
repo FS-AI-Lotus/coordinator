@@ -1,3 +1,11 @@
+/**
+ * @feature monitoring, service-registration
+ * @description Health check endpoint (shared by monitoring and service registration)
+ * @dependencies service-registration, monitoring
+ * @owner core-team
+ * @http GET /health
+ */
+
 const express = require('express');
 const router = express.Router();
 const registryService = require('../services/registryService');

@@ -1,3 +1,12 @@
+/**
+ * @feature uiux
+ * @description UI/UX configuration management endpoints
+ * @dependencies monitoring, security-validation
+ * @owner core-team
+ * @http GET /uiux
+ * @http POST /uiux
+ */
+
 const express = require('express');
 const router = express.Router();
 const uiuxService = require('../services/uiuxService');

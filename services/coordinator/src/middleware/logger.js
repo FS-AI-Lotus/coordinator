@@ -1,3 +1,10 @@
+/**
+ * @feature monitoring
+ * @description Request logging middleware
+ * @dependencies none
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 
 /**

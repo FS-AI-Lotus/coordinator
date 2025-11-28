@@ -1,3 +1,10 @@
+/**
+ * @feature security-validation
+ * @description Request validation and input sanitization middleware
+ * @dependencies none
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 
 /**

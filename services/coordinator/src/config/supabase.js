@@ -1,3 +1,10 @@
+/**
+ * @feature database-integration
+ * @description Supabase client configuration
+ * @dependencies none
+ * @owner core-team
+ */
+
 const { createClient } = require('@supabase/supabase-js');
 const logger = require('../utils/logger');
 

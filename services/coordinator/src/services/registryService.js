@@ -1,3 +1,10 @@
+/**
+ * @feature service-registration
+ * @description Service registry business logic with Supabase persistence
+ * @dependencies database-integration, knowledge-graph
+ * @owner core-team
+ */
+
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const supabase = require('../config/supabase');

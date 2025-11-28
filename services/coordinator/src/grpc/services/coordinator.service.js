@@ -1,3 +1,11 @@
+/**
+ * @feature dual-protocol
+ * @description Coordinator gRPC service handler for RAG integration
+ * @dependencies ai-routing, service-registration, communication-services, monitoring
+ * @owner core-team
+ * @grpc rag.v1.CoordinatorService.Route
+ */
+
 const logger = require('../../utils/logger');
 const aiRoutingService = require('../../services/aiRoutingService');
 const registryService = require('../../services/registryService');

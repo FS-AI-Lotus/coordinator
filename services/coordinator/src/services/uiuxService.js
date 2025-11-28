@@ -1,3 +1,10 @@
+/**
+ * @feature uiux
+ * @description UI/UX configuration service
+ * @dependencies monitoring
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 
 /**

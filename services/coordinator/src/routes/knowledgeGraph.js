@@ -1,3 +1,13 @@
+/**
+ * @feature knowledge-graph
+ * @description Knowledge graph endpoints for service relationships
+ * @dependencies service-registration, database-integration
+ * @owner core-team
+ * @http GET /knowledge-graph
+ * @http GET /graph
+ * @http POST /knowledge-graph/rebuild
+ */
+
 const express = require('express');
 const router = express.Router();
 const knowledgeGraphService = require('../services/knowledgeGraphService');

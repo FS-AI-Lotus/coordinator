@@ -1,3 +1,10 @@
+/**
+ * @feature changelog
+ * @description System changelog service for change tracking
+ * @dependencies none
+ * @owner core-team
+ */
+
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 

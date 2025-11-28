@@ -1,3 +1,10 @@
+/**
+ * @feature security-validation
+ * @description Global error handling middleware
+ * @dependencies none
+ * @owner core-team
+ */
+
 const logger = require('../utils/logger');
 
 /**

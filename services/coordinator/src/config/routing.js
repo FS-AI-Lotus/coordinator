@@ -1,4 +1,11 @@
 /**
+ * @feature ai-routing
+ * @description Routing configuration for AI routing and cascading fallback
+ * @dependencies none
+ * @owner core-team
+ */
+
+/**
  * Routing Configuration
  * Centralized configuration for routing and cascading fallback behavior
  */

@@ -1,3 +1,10 @@
+/**
+ * @feature ai-routing
+ * @description AI-powered routing service using OpenAI
+ * @dependencies service-registration
+ * @owner core-team
+ */
+
 const OpenAI = require('openai');
 const logger = require('../utils/logger');
 const registryService = require('./registryService');

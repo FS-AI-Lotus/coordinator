@@ -1,3 +1,13 @@
+/**
+ * @feature schema-registry
+ * @description Schema registry and validation endpoints
+ * @dependencies service-registration, security-validation
+ * @owner core-team
+ * @http GET /schemas
+ * @http GET /schemas/:serviceId
+ * @http POST /schemas/:serviceId/validate
+ */
+
 const express = require('express');
 const router = express.Router();
 const schemaRegistryService = require('../services/schemaRegistryService');
