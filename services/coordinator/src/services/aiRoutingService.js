@@ -161,13 +161,18 @@ class AIRoutingService {
         endpointsCount: endpoints.length
       });
       
+      // Get description from migrationFile if available, otherwise use service description
+      const serviceDescription = service.migrationFile?.description || service.description || 'No description';
+      const serviceTables = service.migrationFile?.tables || [];
+      
       return `- ${service.serviceName} (v${service.version}):
   Endpoint: ${service.endpoint}
+  Description: ${serviceDescription}
+  Database Tables: ${serviceTables.join(', ') || 'none'}
   Capabilities: ${capabilities.join(', ') || 'none specified'}
   API Endpoints: ${endpoints.map(ep => `${ep.method} ${ep.path}`).join(', ') || 'none'}
   Publishes Events: ${events.publishes?.join(', ') || 'none'}
-  Subscribes to Events: ${events.subscribes?.join(', ') || 'none'}
-  Description: ${service.description || 'No description'}`;
+  Subscribes to Events: ${events.subscribes?.join(', ') || 'none'}`;
     }).join('\n');
 
     return `You are a microservices router. Analyze the following request and determine which service(s) should handle it.
