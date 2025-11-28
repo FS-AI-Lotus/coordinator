@@ -15,8 +15,10 @@ WORKDIR /app
 # Copy dependencies from builder
 COPY --from=builder /app/node_modules ./node_modules
 
-# Copy application code
+# Copy application code (explicitly exclude root server.js if it exists)
 COPY . .
+# Explicitly remove any root server.js that might have been copied
+RUN rm -f server.js 2>/dev/null || true
 
 # Copy healthcheck script
 COPY healthcheck.js ./

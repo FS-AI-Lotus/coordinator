@@ -1,0 +1,47 @@
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Testing
+test
+*.test.js
+*.spec.js
+coverage
+
+# Documentation
+*.md
+!README.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Build artifacts
+dist
+build
+*.log
+
+# CRITICAL: Exclude root server.js files that might contaminate build
+../server.js
+../../server.js
+server.js
+!src/**/*.js
+
