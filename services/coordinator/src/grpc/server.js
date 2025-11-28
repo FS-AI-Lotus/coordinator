@@ -11,10 +11,7 @@ const coordinatorService = require('./services/coordinator.service');
 class GrpcServer {
   constructor() {
     this.server = null;
-    // Parse GRPC_PORT as integer, default to 50051
-    // Handle case where GRPC_PORT might be set to "true" or other non-numeric values
-    const grpcPort = process.env.GRPC_PORT;
-    this.port = grpcPort && !isNaN(parseInt(grpcPort)) ? parseInt(grpcPort) : 50051;
+    this.port = process.env.GRPC_PORT || 50051;
     this.protoPath = path.join(__dirname, 'proto', 'coordinator.proto');
   }
 
