@@ -87,11 +87,14 @@ class RegistryService {
         });
 
         // Rebuild knowledge graph after registration (async, non-blocking)
-        knowledgeGraphService.rebuildGraph().catch(error => {
-          logger.error('Failed to rebuild knowledge graph after registration', {
-            error: error.message,
-            stack: error.stack
-          });
+        setImmediate(async () => {
+          try {
+            await knowledgeGraphService.rebuildGraph();
+          } catch (error) {
+            logger.warn('Failed to rebuild knowledge graph after registration (non-fatal)', {
+              error: error.message
+            });
+          }
         });
 
         return {
@@ -125,11 +128,14 @@ class RegistryService {
         });
 
         // Rebuild knowledge graph after registration (async, non-blocking)
-        knowledgeGraphService.rebuildGraph().catch(error => {
-          logger.error('Failed to rebuild knowledge graph after registration', {
-            error: error.message,
-            stack: error.stack
-          });
+        setImmediate(async () => {
+          try {
+            await knowledgeGraphService.rebuildGraph();
+          } catch (error) {
+            logger.warn('Failed to rebuild knowledge graph after registration (non-fatal)', {
+              error: error.message
+            });
+          }
         });
 
         return {
@@ -278,12 +284,12 @@ class RegistryService {
 
       logger.info('Service status updated in Supabase', { serviceId, status });
       
-      // Rebuild knowledge graph after status update
+      // Rebuild knowledge graph after status update (non-blocking)
       setImmediate(async () => {
         try {
           await knowledgeGraphService.rebuildGraph();
         } catch (error) {
-          logger.warn('Failed to rebuild knowledge graph after status update', {
+          logger.warn('Failed to rebuild knowledge graph after status update (non-fatal)', {
             error: error.message
           });
         }
@@ -384,14 +390,15 @@ class RegistryService {
           serviceName: data.service_name
         });
 
-        // Trigger knowledge graph rebuild
-        const knowledgeGraphService = require('./knowledgeGraphService');
-        setImmediate(() => {
-          knowledgeGraphService.rebuildGraph().catch(error => {
-            logger.warn('Failed to rebuild knowledge graph after migration', {
+        // Trigger knowledge graph rebuild (non-blocking)
+        setImmediate(async () => {
+          try {
+            await knowledgeGraphService.rebuildGraph();
+          } catch (error) {
+            logger.warn('Failed to rebuild knowledge graph after migration (non-fatal)', {
               error: error.message
             });
-          });
+          }
         });
 
         return this._mapSupabaseToService(data);
@@ -413,14 +420,15 @@ class RegistryService {
           serviceName: service.serviceName
         });
 
-        // Trigger knowledge graph rebuild
-        const knowledgeGraphService = require('./knowledgeGraphService');
-        setImmediate(() => {
-          knowledgeGraphService.rebuildGraph().catch(error => {
-            logger.warn('Failed to rebuild knowledge graph after migration', {
+        // Trigger knowledge graph rebuild (non-blocking)
+        setImmediate(async () => {
+          try {
+            await knowledgeGraphService.rebuildGraph();
+          } catch (error) {
+            logger.warn('Failed to rebuild knowledge graph after migration (non-fatal)', {
               error: error.message
             });
-          });
+          }
         });
 
         return service;

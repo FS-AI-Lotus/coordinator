@@ -104,15 +104,25 @@ app.use(proxyRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Initialize knowledge graph on startup
+// Initialize knowledge graph on startup (non-blocking, graceful failure)
 const knowledgeGraphService = require('./services/knowledgeGraphService');
 setImmediate(async () => {
   try {
-    await knowledgeGraphService.rebuildGraph();
-    logger.info('Knowledge graph initialized on startup');
+    // Only rebuild if we have services or Supabase configured
+    const registryService = require('./services/registryService');
+    const totalServices = await registryService.getTotalServices();
+    
+    if (totalServices > 0) {
+      await knowledgeGraphService.rebuildGraph();
+      logger.info('Knowledge graph initialized on startup', { totalServices });
+    } else {
+      logger.info('Skipping knowledge graph rebuild - no services registered yet');
+    }
   } catch (error) {
-    logger.warn('Failed to initialize knowledge graph on startup', {
-      error: error.message
+    // Log warning but don't crash - app should continue running
+    logger.warn('Failed to initialize knowledge graph on startup (non-fatal)', {
+      error: error.message,
+      stack: error.stack
     });
   }
 });
