@@ -1,7 +1,14 @@
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const supabase = require('../config/supabase');
-const knowledgeGraphService = require('./knowledgeGraphService');
+// Lazy require to avoid circular dependency
+let knowledgeGraphService = null;
+function getKnowledgeGraphService() {
+  if (!knowledgeGraphService) {
+    knowledgeGraphService = require('./knowledgeGraphService');
+  }
+  return knowledgeGraphService;
+}
 
 /**
  * Service Registry - Supabase-backed storage with in-memory fallback
@@ -89,7 +96,7 @@ class RegistryService {
         // Rebuild knowledge graph after registration (async, non-blocking)
         setImmediate(async () => {
           try {
-            await knowledgeGraphService.rebuildGraph();
+            await getKnowledgeGraphService().rebuildGraph();
           } catch (error) {
             logger.warn('Failed to rebuild knowledge graph after registration (non-fatal)', {
               error: error.message
@@ -130,7 +137,7 @@ class RegistryService {
         // Rebuild knowledge graph after registration (async, non-blocking)
         setImmediate(async () => {
           try {
-            await knowledgeGraphService.rebuildGraph();
+            await getKnowledgeGraphService().rebuildGraph();
           } catch (error) {
             logger.warn('Failed to rebuild knowledge graph after registration (non-fatal)', {
               error: error.message
@@ -287,7 +294,7 @@ class RegistryService {
       // Rebuild knowledge graph after status update (non-blocking)
       setImmediate(async () => {
         try {
-          await knowledgeGraphService.rebuildGraph();
+          await getKnowledgeGraphService().rebuildGraph();
         } catch (error) {
           logger.warn('Failed to rebuild knowledge graph after status update (non-fatal)', {
             error: error.message
@@ -305,7 +312,7 @@ class RegistryService {
         // Rebuild knowledge graph after status update
         setImmediate(async () => {
           try {
-            await knowledgeGraphService.rebuildGraph();
+            await getKnowledgeGraphService().rebuildGraph();
           } catch (error) {
             logger.warn('Failed to rebuild knowledge graph after status update', {
               error: error.message
@@ -393,7 +400,7 @@ class RegistryService {
         // Trigger knowledge graph rebuild (non-blocking)
         setImmediate(async () => {
           try {
-            await knowledgeGraphService.rebuildGraph();
+            await getKnowledgeGraphService().rebuildGraph();
           } catch (error) {
             logger.warn('Failed to rebuild knowledge graph after migration (non-fatal)', {
               error: error.message
@@ -423,7 +430,7 @@ class RegistryService {
         // Trigger knowledge graph rebuild (non-blocking)
         setImmediate(async () => {
           try {
-            await knowledgeGraphService.rebuildGraph();
+            await getKnowledgeGraphService().rebuildGraph();
           } catch (error) {
             logger.warn('Failed to rebuild knowledge graph after migration (non-fatal)', {
               error: error.message
