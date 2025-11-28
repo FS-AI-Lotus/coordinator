@@ -72,15 +72,23 @@ After applying, you can verify the deployment by:
 2. Visiting the Railway dashboard:
    https://railway.com/project/8632d9e3-3e0f-4fe2-8271-b12306d776ba?environmentId=9290683b-f743-469c-9c05-6a439e73ba4a
 
-## Service Provisioned
+## Services Provisioned
 
-Team 1 provisions only the **Management Reporting** microservice infrastructure. Team 3
-and Team 2 can extend/reconfigure it (additional env vars, secrets, CI/CD hooks) by
-updating `infra/main.tf` or using the Railway dashboard.
+This Terraform configuration provisions the following services:
 
-- **management-reporting** (provisioned as `management-reporting-<env-suffix>`)
-  - Env: `PORT=3200`
-  - Repository/image attachment handled later via Railway or Team 3 automation
+- **coordinator** (provisioned as `coordinator-<env-suffix>`)
+  - Env: `PORT=3000`, `NODE_ENV=production`, `GRPC_ENABLED=true`, `GRPC_PORT=50051`, `DEFAULT_PROTOCOL=http`, `LOG_LEVEL=info`
+  - Main coordinator service with gRPC and HTTP support
+
+- **ms1** (provisioned as `ms1-<env-suffix>`)
+  - Env: `PORT=3000`, `NODE_ENV=production`
+  - Microservice 1
+
+- **ms2** (provisioned as `ms2-<env-suffix>`)
+  - Env: `PORT=3000`, `NODE_ENV=production`
+  - Microservice 2
+
+Repository/image attachment handled via Railway dashboard or CI/CD automation.
 
 ## Outputs
 

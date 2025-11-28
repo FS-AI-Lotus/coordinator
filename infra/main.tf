@@ -1,41 +1,34 @@
 locals {
-  name_suffix       = substr(var.railway_environment_id, 0, 8)
-  service_base_name = "management-reporting"
+  name_suffix = substr(var.railway_environment_id, 0, 8)
 
+  # Actual services in this repository
   default_services = {
-    management_reporting = {
-      name = "${local.service_base_name}-${local.name_suffix}"
+    coordinator = {
+      name = "coordinator-${local.name_suffix}"
       env = {
-        PORT = "3200"
+        PORT            = "3000"
+        NODE_ENV        = "production"
+        GRPC_ENABLED    = "true"
+        GRPC_PORT       = "50051"
+        DEFAULT_PROTOCOL = "http"
+        LOG_LEVEL       = "info"
       }
     }
 
-    content_studio = {
-      name = "content-studio"
+    ms1 = {
+      name = "ms1-${local.name_suffix}"
+      env = {
+        PORT     = "3000"
+        NODE_ENV = "production"
+      }
     }
 
-    devlab = {
-      name = "devlab"
-    }
-
-    assessment = {
-      name = "assessment"
-    }
-
-    ai_learner = {
-      name = "ai-learner"
-    }
-
-    learning_analytics = {
-      name = "learning-analytics"
-    }
-
-    directory_and_rag = {
-      name = "directory-and-rag"
-    }
-
-    skills_engine = {
-      name = "skills-engine"
+    ms2 = {
+      name = "ms2-${local.name_suffix}"
+      env = {
+        PORT     = "3000"
+        NODE_ENV = "production"
+      }
     }
   }
 }
