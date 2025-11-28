@@ -144,9 +144,13 @@ if (grpcEnabled) {
   startGrpcServer()
     .then((server) => {
       grpcServer = server;
+      // Parse GRPC_PORT to ensure it's a number
+      const grpcPort = process.env.GRPC_PORT;
+      const parsedGrpcPort = (grpcPort && !isNaN(parseInt(grpcPort))) ? parseInt(grpcPort) : 50051;
+      
       logger.info('Both HTTP and gRPC servers are running', {
         httpPort: PORT,
-        grpcPort: process.env.GRPC_PORT || 50051
+        grpcPort: parsedGrpcPort
       });
     })
     .catch((error) => {
