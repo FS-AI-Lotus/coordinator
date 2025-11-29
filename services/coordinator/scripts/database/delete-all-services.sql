@@ -48,3 +48,4 @@ DELETE FROM registered_services;
 -- To restore from backup:
 -- INSERT INTO registered_services SELECT * FROM registered_services_backup;
 
+

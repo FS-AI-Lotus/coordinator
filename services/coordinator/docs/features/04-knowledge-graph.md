@@ -138,3 +138,4 @@ Access metrics via: `GET /metrics`
 - [Knowledge Graph Setup](../../KNOWLEDGE_GRAPH_SETUP.md)
 - [Troubleshooting Knowledge Graph](../../TROUBLESHOOTING_KNOWLEDGE_GRAPH.md)
 
+

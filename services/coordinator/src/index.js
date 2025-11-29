@@ -22,6 +22,7 @@ const routeRoutes = require('./routes/route');
 const knowledgeGraphRoutes = require('./routes/knowledgeGraph');
 const changelogRoutes = require('./routes/changelog');
 const schemasRoutes = require('./routes/schemas');
+const unifiedProxyRoutes = require('./routes/unified-proxy');
 const proxyRoutes = require('./routes/proxy');
 
 // Create Express app
@@ -82,6 +83,7 @@ app.use('/changelog', changelogRoutes);
 app.use('/schemas', schemasRoutes);
 app.use('/health', healthRoutes);
 app.use('/metrics', metricsRoutes);
+app.use('/api/fill-content-metrics', unifiedProxyRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -99,6 +101,7 @@ app.get('/', (req, res) => {
       schemas: 'GET /schemas, GET /schemas/:serviceId, POST /schemas/:serviceId/validate',
       health: 'GET /health',
       metrics: 'GET /metrics',
+      unifiedProxy: 'POST /api/fill-content-metrics/ (Unified inter-service communication endpoint)',
       proxy: 'All other routes are proxied through AI routing'
     }
   });

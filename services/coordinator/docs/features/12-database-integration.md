@@ -134,3 +134,4 @@ Access metrics via: `GET /metrics`
 - [Supabase Setup](../../SUPABASE_SETUP.md)
 - [Service Registration](../features/01-service-registration.md)
 
+

@@ -1,0 +1,50 @@
+name: Test Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+  repository_dispatch:
+    types: [deployment-complete]
+
+jobs:
+  test-deployment:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          cd services/coordinator
+          npm ci
+
+      - name: Run unit tests
+        run: |
+          cd services/coordinator
+          npm test
+
+      - name: Run deployment tests
+        run: |
+          cd services/coordinator
+          RAILWAY_URL=${{ secrets.RAILWAY_URL || 'https://coordinator-production-e0a0.up.railway.app' }}
+          npm run test:deployment
+        env:
+          RAILWAY_URL: ${{ secrets.RAILWAY_URL || 'https://coordinator-production-e0a0.up.railway.app' }}
+
+      - name: Generate test report
+        if: always()
+        run: |
+          cd services/coordinator
+          npm run test:coverage
+        continue-on-error: true
+

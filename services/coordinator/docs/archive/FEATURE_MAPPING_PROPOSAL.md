@@ -20,3 +20,4 @@ All files are categorized with their roles, dependencies, and API endpoints.
 
 **Note:** This is a historical proposal document. The feature system has been implemented. See `docs/features/` for current feature documentation.
 
+

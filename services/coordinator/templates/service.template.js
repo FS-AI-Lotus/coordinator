@@ -195,3 +195,4 @@ class {{FEATURE_NAME}}Service {
 
 module.exports = new {{FEATURE_NAME}}Service();
 
+
