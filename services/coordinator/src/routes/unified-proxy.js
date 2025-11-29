@@ -17,14 +17,56 @@ const { sanitizeInput } = require('../middleware/validation');
  * POST /api/fill-content-metrics/
  * Unified proxy endpoint for inter-service communication
  * 
- * Request Format:
+ * This endpoint provides a standardized way for microservices to communicate with each other
+ * through the Coordinator. The Coordinator uses AI-powered routing to automatically determine
+ * which service should handle each request based on the payload content.
+ * 
+ * @route POST /api/fill-content-metrics/
+ * @feature unified-proxy
+ * 
+ * @request {Object} body - Request body
+ * @request {string} body.requester_service - REQUIRED: Name of the service making the request
+ * @request {Object} body.payload - OPTIONAL: Service-specific data (can be empty object {})
+ * @request {Object} body.response - REQUIRED: Template defining expected response structure with field names
+ * 
+ * @response {200} success - Request processed successfully
+ * @response {Object} success.data - Mapped response matching the response template
+ * @response {Object} success.metadata - Routing metadata (routed_to, confidence, requester, processing_time_ms)
+ * 
+ * @response {400} validation_error - Missing or invalid required fields
+ * @response {404} not_found - No suitable service found or target service not in registry
+ * @response {502} gateway_error - AI routing failed or target service unavailable
+ * @response {503} service_unavailable - Target service is not active
+ * 
+ * @example
+ * // Request
  * {
- *   "requester_service": "service-name",
- *   "payload": { ... },
- *   "response": { "field1": "", "field2": "" }
+ *   "requester_service": "devlab",
+ *   "payload": {
+ *     "action": "coding",
+ *     "amount": 2,
+ *     "difficulty": "medium"
+ *   },
+ *   "response": {
+ *     "answer": ""
+ *   }
  * }
  * 
- * Flow:
+ * // Response
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "answer": "... content from target service ..."
+ *   },
+ *   "metadata": {
+ *     "routed_to": "exercises-service",
+ *     "confidence": 0.95,
+ *     "requester": "devlab",
+ *     "processing_time_ms": 245
+ *   }
+ * }
+ * 
+ * @flow
  * 1. Receive request from requester microservice
  * 2. Extract payload and convert to natural language query
  * 3. Use AI routing to find best target service
@@ -252,9 +294,35 @@ router.post('/', sanitizeInput, async (req, res, next) => {
 });
 
 /**
- * Convert payload object to natural language query
- * @param {Object} payload - Request payload
+ * Convert payload object to natural language query for AI routing
+ * 
+ * Converts a payload object into a natural language string that can be used by the AI routing
+ * service to determine which microservice should handle the request.
+ * 
+ * @param {Object} payload - Request payload object
+ * @param {*} payload.* - Any key-value pairs in the payload
  * @returns {string} - Natural language query string
+ * 
+ * @example
+ * // Input
+ * { "action": "coding", "amount": 2, "difficulty": "medium" }
+ * 
+ * // Output
+ * "action: coding, amount: 2, difficulty: medium"
+ * 
+ * @example
+ * // Input (empty)
+ * {}
+ * 
+ * // Output
+ * "empty request"
+ * 
+ * @example
+ * // Input (nested object)
+ * { "action": "payment", "details": { "amount": 100 } }
+ * 
+ * // Output
+ * "action: payment, details: {\"amount\":100}"
  */
 function convertPayloadToQuery(payload) {
   if (!payload || typeof payload !== 'object' || Object.keys(payload).length === 0) {
@@ -278,11 +346,38 @@ function convertPayloadToQuery(payload) {
 }
 
 /**
- * Forward request to target service
- * @param {string} targetUrl - Target service URL
- * @param {Object} payload - Request payload
- * @param {string} requesterService - Requester service name
- * @returns {Promise<Object>} - Response from target service
+ * Forward request to target service's /api/fill-content-metrics/ endpoint
+ * 
+ * Sends the complete request to the target microservice and waits for response.
+ * Includes proper headers, timeout handling, and error management.
+ * 
+ * @param {string} targetUrl - Full URL of target service endpoint (e.g., "http://exercises-service:5000/api/fill-content-metrics/")
+ * @param {Object} payload - Complete request payload to forward
+ * @param {string} payload.requester_service - Name of the requester service
+ * @param {Object} payload.payload - Original payload data
+ * @param {Object} payload.response - Response template
+ * @param {string} requesterService - Name of the service making the original request
+ * @returns {Promise<Object>} - Response data from target service
+ * 
+ * @throws {Error} If request times out (after 30 seconds)
+ * @throws {Error} If target service is unavailable (ECONNREFUSED)
+ * @throws {Error} If target service returns non-OK status
+ * 
+ * @example
+ * // Input
+ * targetUrl: "http://exercises-service:5000/api/fill-content-metrics/"
+ * payload: {
+ *   requester_service: "devlab",
+ *   payload: { action: "coding" },
+ *   response: { answer: "" }
+ * }
+ * requesterService: "devlab"
+ * 
+ * // Output
+ * {
+ *   success: true,
+ *   data: { answer: "Exercise content..." }
+ * }
  */
 async function forwardToTargetService(targetUrl, payload, requesterService) {
   const timeout = 30000; // 30 seconds
@@ -342,10 +437,51 @@ async function forwardToTargetService(targetUrl, payload, requesterService) {
 }
 
 /**
- * Map target service response to match response template
+ * Map target service response to match requester's response template
+ * 
+ * Transforms the target service's response format to match the field names expected
+ * by the requester service. Uses intelligent matching (exact, case-insensitive, defaults).
+ * 
  * @param {Object} targetResponse - Response from target service
- * @param {Object} responseTemplate - Template defining expected response structure
- * @returns {Object} - Mapped response matching template
+ * @param {boolean} [targetResponse.success] - Success flag (if wrapped)
+ * @param {Object} [targetResponse.data] - Response data (if wrapped)
+ * @param {Object} responseTemplate - Template defining expected response structure with field names
+ * @param {*} responseTemplate.* - Field names and default values expected by requester
+ * @returns {Object} - Mapped response matching template structure
+ * 
+ * @mapping_priority
+ * 1. Exact field name match (case-sensitive)
+ * 2. Case-insensitive field name match
+ * 3. Template default value
+ * 4. First available field from target response (if template value is empty string)
+ * 
+ * @example
+ * // Target service returns:
+ * {
+ *   success: true,
+ *   data: {
+ *     generated_exercises: [...],
+ *     count: 2
+ *   }
+ * }
+ * 
+ * // Response template:
+ * {
+ *   exercises: "",
+ *   total: 0
+ * }
+ * 
+ * // Mapped result:
+ * {
+ *   exercises: [...],  // Mapped from "generated_exercises" (case-insensitive or first available)
+ *   total: 2           // Mapped from "count" (exact match or first available)
+ * }
+ * 
+ * @example
+ * // Empty template returns all data:
+ * // Template: {}
+ * // Target: { field1: "value1", field2: "value2" }
+ * // Result: { field1: "value1", field2: "value2" }
  */
 function mapResponseToTemplate(targetResponse, responseTemplate) {
   // If target response is wrapped in success/data structure, extract it

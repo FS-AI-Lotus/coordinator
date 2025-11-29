@@ -245,6 +245,575 @@ curl -X POST http://localhost:3000/route \
 
 ---
 
+## Unified Proxy Endpoint (Inter-Service Communication)
+
+### Overview
+
+The unified proxy endpoint provides a standardized way for microservices to communicate with each other through the Coordinator. The Coordinator uses AI-powered routing to automatically determine which service should handle each request based on the payload content.
+
+**Endpoint:** `POST /api/fill-content-metrics/`
+
+**Purpose:**
+- Centralized inter-service communication
+- AI-powered automatic routing
+- Standardized request/response format
+- Automatic response mapping
+
+**Status:** ✅ Production Ready (Tested on Railway)
+
+**Production URL:** `https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/`
+
+---
+
+### Request Format
+
+#### Required Fields
+
+```json
+{
+  "requester_service": "string",    // REQUIRED: Name of the service making the request
+  "payload": {},                     // OPTIONAL: Service-specific data (can be empty object)
+  "response": {}                     // REQUIRED: Template defining expected response structure
+}
+```
+
+#### Field Descriptions
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `requester_service` | string | ✅ Yes | Name of the microservice making the request (e.g., "devlab", "user-service") |
+| `payload` | object | ⚠️ Optional | Data specific to the request. Can be empty `{}` if no data needed |
+| `response` | object | ✅ Yes | Template defining the structure of the expected response with field names |
+
+---
+
+### Request Examples
+
+#### Example 1: Generate Coding Exercises
+
+```bash
+curl -X POST https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requester_service": "devlab",
+    "payload": {
+      "action": "coding",
+      "amount": 2,
+      "difficulty": "medium",
+      "programming_language": "javascript",
+      "skills": ["loops", "arrays"]
+    },
+    "response": {
+      "exercises": []
+    }
+  }'
+```
+
+#### Example 2: Process Payment
+
+```bash
+curl -X POST https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requester_service": "order-service",
+    "payload": {
+      "action": "process_payment",
+      "order_id": "12345",
+      "amount": 99.99,
+      "currency": "USD"
+    },
+    "response": {
+      "transaction_id": "",
+      "status": "",
+      "receipt_url": ""
+    }
+  }'
+```
+
+#### Example 3: Get User Profile
+
+```bash
+curl -X POST https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requester_service": "dashboard-service",
+    "payload": {
+      "action": "get_user_profile",
+      "user_id": "user-123"
+    },
+    "response": {
+      "name": "",
+      "email": "",
+      "avatar": ""
+    }
+  }'
+```
+
+#### Example 4: Empty Payload
+
+```bash
+curl -X POST https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requester_service": "monitoring-service",
+    "payload": {},
+    "response": {
+      "status": ""
+    }
+  }'
+```
+
+---
+
+### Response Format
+
+#### Success Response (200 OK)
+
+```json
+{
+  "success": true,
+  "data": {
+    // Fields matching the response template
+    "exercises": [
+      { "id": 1, "title": "...", "code": "..." },
+      { "id": 2, "title": "...", "code": "..." }
+    ]
+  },
+  "metadata": {
+    "routed_to": "exercises-service",
+    "confidence": 0.95,
+    "requester": "devlab",
+    "processing_time_ms": 245
+  }
+}
+```
+
+#### Error Responses
+
+**400 Bad Request - Missing Required Field**
+```json
+{
+  "success": false,
+  "message": "Missing required field: requester_service"
+}
+```
+
+**404 Not Found - No Suitable Service**
+```json
+{
+  "success": false,
+  "message": "No suitable microservice found for this request",
+  "query": "coding, amount: 2, difficulty: medium",
+  "requester": "devlab",
+  "availableServices": ["exercises-service", "payment-service", "user-service"]
+}
+```
+
+**502 Bad Gateway - Target Service Error**
+```json
+{
+  "success": false,
+  "message": "Failed to communicate with target service 'exercises-service'",
+  "error": "connect ECONNREFUSED",
+  "requester": "devlab",
+  "routed_to": "exercises-service"
+}
+```
+
+**503 Service Unavailable - Service Not Active**
+```json
+{
+  "success": false,
+  "message": "Target service 'exercises-service' is not active (status: pending_migration)",
+  "requester": "devlab"
+}
+```
+
+---
+
+### How It Works
+
+#### 1. Request Flow
+
+```
+Requester Service 
+    ↓
+    POST /api/fill-content-metrics/
+    ↓
+Coordinator receives request
+    ↓
+Convert payload to natural language query
+    ↓
+AI routing determines best service
+    ↓
+Forward request to target service
+    ↓
+Target service processes and responds
+    ↓
+Coordinator maps response to template
+    ↓
+Return mapped response to requester
+```
+
+#### 2. AI-Powered Routing
+
+The Coordinator automatically determines which service should handle the request based on:
+
+- **Payload content**: Field names and values (e.g., "action": "coding")
+- **Service capabilities**: Keywords from migration files (e.g., ["coding exercises", "programming challenges"])
+- **Service descriptions**: Natural language descriptions
+- **Confidence scoring**: Returns target with highest confidence (>0.3)
+
+**Example:**
+```javascript
+// Payload
+{ "action": "coding", "difficulty": "medium" }
+
+// Converted to query
+"action: coding, difficulty: medium"
+
+// AI analysis
+// Matches exercises-service capabilities: ["coding exercises", "programming challenges"]
+// Confidence: 0.95
+
+// Routes to
+exercises-service
+```
+
+#### 3. Response Mapping
+
+The Coordinator automatically maps the target service's response to match the requester's expected format:
+
+**Target service returns:**
+```json
+{
+  "success": true,
+  "data": {
+    "generated_exercises": [...],
+    "count": 2
+  }
+}
+```
+
+**Response template:**
+```json
+{
+  "exercises": []
+}
+```
+
+**Coordinator maps and returns:**
+```json
+{
+  "success": true,
+  "data": {
+    "exercises": [...]  // Mapped from "generated_exercises"
+  }
+}
+```
+
+---
+
+### Target Service Implementation
+
+All microservices that want to receive requests must implement the same endpoint:
+
+#### Endpoint: `POST /api/fill-content-metrics/`
+
+#### Implementation Example (Node.js/Express)
+
+```javascript
+app.post('/api/fill-content-metrics/', async (req, res) => {
+  const { requester_service, payload, response: responseTemplate } = req.body;
+  
+  try {
+    console.log(`Request from: ${requester_service}`);
+    
+    // Your business logic here
+    const result = await processRequest(payload);
+    
+    // Map response to match template
+    const mappedResponse = {};
+    for (const key of Object.keys(responseTemplate)) {
+      // Fill each field requested by the requester
+      mappedResponse[key] = result[key] || result.data?.[key] || null;
+    }
+    
+    // Return in expected format
+    res.json({
+      success: true,
+      data: mappedResponse
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+```
+
+#### Implementation Example (Python/Flask)
+
+```python
+@app.route('/api/fill-content-metrics/', methods=['POST'])
+def fill_content_metrics():
+    data = request.get_json()
+    requester_service = data.get('requester_service')
+    payload = data.get('payload', {})
+    response_template = data.get('response', {})
+    
+    try:
+        print(f"Request from: {requester_service}")
+        
+        # Your business logic here
+        result = process_request(payload)
+        
+        # Map response to match template
+        mapped_response = {}
+        for key in response_template.keys():
+            mapped_response[key] = result.get(key) or result.get('data', {}).get(key)
+        
+        return jsonify({
+            'success': True,
+            'data': mapped_response
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+```
+
+---
+
+### Usage in Microservices
+
+#### Step 1: Register Your Service
+
+First, register your service with the Coordinator (see Service Registration section).
+
+#### Step 2: Implement the Endpoint
+
+Add `POST /api/fill-content-metrics/` to your service (see examples above).
+
+#### Step 3: Make Requests Through Coordinator
+
+```javascript
+// Instead of calling services directly:
+// const response = await fetch('http://exercises-service:5000/api/exercises');
+
+// Call through the Coordinator:
+const response = await fetch('https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    requester_service: 'devlab',
+    payload: {
+      action: 'coding',
+      amount: 2,
+      difficulty: 'medium'
+    },
+    response: {
+      exercises: []  // Field names you expect
+    }
+  })
+});
+
+const result = await response.json();
+if (result.success) {
+  const exercises = result.data.exercises;
+  console.log('Received exercises:', exercises);
+}
+```
+
+---
+
+### Best Practices
+
+#### 1. Clear Action Names
+
+```javascript
+✅ Good:
+{ "action": "generate_coding_exercises" }
+
+❌ Bad:
+{ "action": "do_stuff" }
+```
+
+#### 2. Include Context in Payload
+
+```javascript
+✅ Good:
+{
+  "action": "process_payment",
+  "type": "subscription",
+  "interval": "monthly"
+}
+
+❌ Bad:
+{
+  "action": "process"
+}
+```
+
+#### 3. Accurate Service Capabilities
+
+In your migration file:
+
+```javascript
+capabilities: [
+  "coding exercises",        // ✅ Clear
+  "generate exercises",      // ✅ Clear
+  "programming challenges",  // ✅ Clear
+  "stuff"                    // ❌ Too vague
+]
+```
+
+#### 4. Handle Errors Gracefully
+
+```javascript
+try {
+  const response = await fetch(coordinatorUrl, {...});
+  const result = await response.json();
+  
+  if (!result.success) {
+    console.error('Request failed:', result.message);
+    // Handle error
+  }
+} catch (error) {
+  console.error('Network error:', error);
+  // Handle timeout or connection issues
+}
+```
+
+#### 5. Use Meaningful Response Templates
+
+```javascript
+✅ Good:
+{
+  "exercises": [],
+  "total_count": 0,
+  "difficulty_level": ""
+}
+
+❌ Bad:
+{
+  "data": ""
+}
+```
+
+---
+
+### Testing
+
+#### Health Check
+
+```bash
+curl https://coordinator-production-e0a0.up.railway.app/health
+```
+
+#### Test Unified Proxy
+
+```bash
+curl -X POST https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requester_service": "test-service",
+    "payload": {"action": "test"},
+    "response": {"result": ""}
+  }'
+```
+
+---
+
+### Performance Considerations
+
+- **Timeout**: 30 seconds per request
+- **Concurrent Requests**: Supported
+- **Response Time**: Typically <1 second for simple routing
+- **AI Routing**: Adds ~100-500ms overhead
+
+---
+
+### Troubleshooting
+
+#### No Service Found (404)
+
+- Ensure target service is registered and status is `active`
+- Check service `capabilities` in migration file
+- Verify payload has clear, descriptive fields
+
+#### Request Timeout (502)
+
+- Target service may be slow or down
+- Check target service health
+- Verify target service has `/api/fill-content-metrics/` endpoint
+
+#### Response Mapping Issues
+
+- Verify response template field names
+- Check target service returns data in expected format
+- Ensure target service implements endpoint correctly
+
+---
+
+### Quick Reference
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/api/fill-content-metrics/` | Unified inter-service communication |
+
+**Required Headers:**
+```
+Content-Type: application/json
+```
+
+**Required Body Fields:**
+```json
+{
+  "requester_service": "string",
+  "response": {}
+}
+```
+
+**Optional Body Fields:**
+```json
+{
+  "payload": {}
+}
+```
+
+---
+
+### Integration Checklist
+
+For each microservice:
+
+- [ ] Implement `POST /api/fill-content-metrics/` endpoint
+- [ ] Register with Coordinator (Stage 1 + Stage 2)
+- [ ] Verify status is `active`
+- [ ] Update inter-service calls to use unified proxy
+- [ ] Test request/response flow
+- [ ] Handle errors appropriately
+- [ ] Monitor logs for debugging
+
+---
+
+**Production URL:** `https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/`
+
+**Status:** ✅ Live and Tested (13/13 deployment tests passed)
+
+**Related Documentation:**
+- [Feature 13: Unified Proxy Endpoint](../docs/features/13-unified-proxy.md)
+- [Unified Proxy Implementation](../UNIFIED_PROXY_IMPLEMENTATION.md)
+- [AI Routing Guide](../AI_ROUTING_GUIDE.md)
+- [Service Registration Guide](../MICROSERVICE_REGISTRATION_GUIDE.md)
+
+---
+
 ## Service Discovery
 
 ### List Services

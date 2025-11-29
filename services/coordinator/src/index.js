@@ -83,6 +83,9 @@ app.use('/changelog', changelogRoutes);
 app.use('/schemas', schemasRoutes);
 app.use('/health', healthRoutes);
 app.use('/metrics', metricsRoutes);
+// Unified Proxy Endpoint - Inter-service communication with AI routing and response mapping
+// @feature unified-proxy
+// @route POST /api/fill-content-metrics/
 app.use('/api/fill-content-metrics', unifiedProxyRoutes);
 
 // Root endpoint

@@ -241,7 +241,69 @@ GET /metrics
 
 ---
 
-### **🔄 9. Proxy (פרוקסי חכם)**
+### **🔄 9. Unified Proxy Endpoint (תקשורת בין-שירותים)**
+
+#### **נקודת קצה אחידה לתקשורת בין מיקרו-שירותים**
+
+```http
+POST /api/fill-content-metrics/
+Content-Type: application/json
+
+{
+  "requester_service": "devlab",
+  "payload": {
+    "action": "coding",
+    "amount": 2,
+    "difficulty": "medium"
+  },
+  "response": {
+    "answer": ""
+  }
+}
+```
+
+**תיאור:** נקודת קצה אחידה לתקשורת בין מיקרו-שירותים. הקואורדינטור משתמש ב-AI routing כדי לקבוע אוטומטית איזה שירות צריך לטפל בבקשה.
+
+**תגובה:**
+```json
+{
+  "success": true,
+  "data": {
+    "answer": "... תוכן מהשירות היעד ..."
+  },
+  "metadata": {
+    "routed_to": "exercises-service",
+    "confidence": 0.95,
+    "requester": "devlab",
+    "processing_time_ms": 245
+  }
+}
+```
+
+**דוגמה:**
+```bash
+curl -X POST https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requester_service": "devlab",
+    "payload": {
+      "action": "coding",
+      "amount": 2,
+      "difficulty": "medium"
+    },
+    "response": {
+      "exercises": []
+    }
+  }'
+```
+
+**סטטוס:** ✅ מוכן לייצור (נבדק ב-Railway)
+
+**קישור:** [תיעוד מפורט](../docs/features/13-unified-proxy.md)
+
+---
+
+### **🔄 10. Proxy (פרוקסי חכם)**
 
 **כל הבקשות שלא תואמות endpoints של הקואורדינטור עוברות דרך AI routing:**
 
@@ -250,6 +312,8 @@ GET /api/payments/user/123    # → Routes to payment-service
 POST /api/users/profile       # → Routes to user-service  
 PUT /api/inventory/update     # → Routes to inventory-service
 ```
+
+**הערה:** נקודת הקצה `/api/fill-content-metrics/` נרשמת לפני ה-proxy הכללי, כך שהיא מקבלת עדיפות.
 
 ---
 
@@ -361,7 +425,29 @@ curl -X POST http://localhost:3001/route \
 # תגובה: מציאת notification-service
 ```
 
-### **3. גילוי שירותים**
+### **3. Unified Proxy - תקשורת בין-שירותים**
+
+```bash
+# בקשה דרך נקודת הקצה האחידה
+curl -X POST https://coordinator-production-e0a0.up.railway.app/api/fill-content-metrics/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "requester_service": "devlab",
+    "payload": {
+      "action": "coding",
+      "amount": 2,
+      "difficulty": "medium",
+      "programming_language": "javascript"
+    },
+    "response": {
+      "exercises": []
+    }
+  }'
+
+# תגובה: הקואורדינטור מנתב ל-exercises-service ומחזיר תרגילים
+```
+
+### **4. גילוי שירותים**
 
 ```bash
 # רשימת שירותים פעילים
@@ -371,7 +457,7 @@ curl http://localhost:3001/services
 curl http://localhost:3001/knowledge-graph
 ```
 
-### **4. בדיקת gRPC עם grpcurl**
+### **5. בדיקת gRPC עם grpcurl**
 
 ```bash
 # Test gRPC Route endpoint
@@ -386,7 +472,7 @@ grpcurl -plaintext \
   rag.v1.CoordinatorService/Route
 ```
 
-### **5. Schema Registry**
+### **6. Schema Registry**
 
 ```bash
 # Get all schemas
@@ -402,7 +488,7 @@ curl -X POST http://localhost:3001/schemas/payment-service/validate \
   }'
 ```
 
-### **6. Changelog Operations**
+### **7. Changelog Operations**
 
 ```bash
 # Get recent changes
@@ -423,6 +509,7 @@ curl http://localhost:3001/changelog/stats
 |-------------|---------------|-------------|
 | **Registration** | `/register` | רישום דו-שלבי |
 | **AI Routing** | `/route` | ניתוב חכם |
+| **Unified Proxy** | `/api/fill-content-metrics/` | תקשורת בין-שירותים אחידה |
 | **Discovery** | `/services`, `/registry` | גילוי שירותים |
 | **Knowledge** | `/knowledge-graph`, `/graph` | גרף ידע |
 | **UI/UX** | `/uiux` | הגדרות ממשק |
@@ -440,6 +527,7 @@ curl http://localhost:3001/changelog/stats
 - **Dual-Protocol:** HTTP + gRPC
 - **AI-Powered Routing:** ניתוב חכם מבוסס OpenAI
 - **Two-Stage Registration:** רישום דו-שלבי
+- **Unified Proxy:** נקודת קצה אחידה לתקשורת בין-שירותים
 - **Universal Envelope:** פורמט אחיד
 - **Schema Registry:** ניהול סכמות
 - **Knowledge Graph:** גרף ידע דינמי
@@ -448,8 +536,9 @@ curl http://localhost:3001/changelog/stats
 ### **🔄 זרימת עבודה:**
 1. **רישום שירותים** → דו-שלבי עם migration files
 2. **AI routing** → ניתוח חכם של בקשות
-3. **Service discovery** → גילוי אוטומטי של שירותים
-4. **Smart proxy** → ניתוב אוטומטי של כל הבקשות
+3. **Unified proxy** → תקשורת אחידה בין מיקרו-שירותים
+4. **Service discovery** → גילוי אוטומטי של שירותים
+5. **Smart proxy** → ניתוב אוטומטי של כל הבקשות
 
 ### **🚀 פרוטוקולים נתמכים:**
 - **HTTP REST:** כל ה-endpoints הסטנדרטיים
