@@ -5,7 +5,9 @@ WORKDIR /app
 
 # Copy package files and install dependencies (better layer caching)
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+# Use npm install instead of npm ci to handle lock file sync issues
+# For production, only install production dependencies
+RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
 
 # Production stage
 FROM node:20-alpine
