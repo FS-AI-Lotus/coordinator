@@ -6,8 +6,8 @@
 const request = require('supertest');
 const nock = require('nock');
 const { createTestApp } = require('./helpers/test-server');
-const aiRoutingService = require('../../src/services/aiRoutingService');
-const registryService = require('../../src/services/registryService');
+const aiRoutingService = require('../src/services/aiRoutingService');
+const registryService = require('../src/services/registryService');
 
 // Mock services
 const {
