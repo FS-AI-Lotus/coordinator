@@ -13,6 +13,7 @@
     "test:coverage": "jest --coverage",
     "test:unified-proxy": "jest tests/unified-proxy.test.js",
     "test:deployment": "jest tests/deployment.test.js --testTimeout=30000",
+    "test:post-deployment": "jest tests/post-deployment.test.js --testTimeout=60000",
     "test:all": "npm test && npm run test:deployment",
     "postdeploy": "node scripts/test-deployment.js"
   },
